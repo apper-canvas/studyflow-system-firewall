@@ -1,0 +1,52 @@
+[
+  {
+    "Id": 1,
+    "name": "Computer Science Fundamentals",
+    "instructor": "Dr. Sarah Johnson",
+    "schedule": "MWF 10:00-11:00 AM",
+    "color": "#2563eb",
+    "semester": "Fall 2024",
+    "credits": 4,
+    "createdAt": "2024-08-15T09:00:00.000Z"
+  },
+  {
+    "Id": 2,
+    "name": "Calculus I",
+    "instructor": "Prof. Michael Chen",
+    "schedule": "TTh 2:00-3:30 PM",
+    "color": "#7c3aed",
+    "semester": "Fall 2024",
+    "credits": 4,
+    "createdAt": "2024-08-15T10:00:00.000Z"
+  },
+  {
+    "Id": 3,
+    "name": "English Composition",
+    "instructor": "Dr. Emily Rodriguez",
+    "schedule": "MWF 1:00-2:00 PM",
+    "color": "#0891b2",
+    "semester": "Fall 2024",
+    "credits": 3,
+    "createdAt": "2024-08-15T11:00:00.000Z"
+  },
+  {
+    "Id": 4,
+    "name": "Physics I",
+    "instructor": "Prof. David Kim",
+    "schedule": "TTh 9:00-10:30 AM",
+    "color": "#059669",
+    "semester": "Fall 2024",
+    "credits": 4,
+    "createdAt": "2024-08-15T12:00:00.000Z"
+  },
+  {
+    "Id": 5,
+    "name": "Psychology 101",
+    "instructor": "Dr. Amanda Wilson",
+    "schedule": "MW 3:00-4:30 PM",
+    "color": "#dc2626",
+    "semester": "Fall 2024",
+    "credits": 3,
+    "createdAt": "2024-08-15T13:00:00.000Z"
+  }
+]
