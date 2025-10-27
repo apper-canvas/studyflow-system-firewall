@@ -132,8 +132,21 @@
             "label": "Prompt password page is public",
             "rule": "public"
           }
-        ]
+]
       }
+    }
+  },
+  "/students": {
+    "allow": {
+      "when": {
+        "conditions": [
+          {
+            "label": "User must be logged in to view students",
+            "rule": "authenticated"
+          }
+        ]
+      },
+      "redirectOnDeny": "/login"
     }
   }
 }

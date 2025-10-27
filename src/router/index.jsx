@@ -9,6 +9,7 @@ const Courses = lazy(() => import("@/components/pages/Courses"))
 const Assignments = lazy(() => import("@/components/pages/Assignments"))
 const Calendar = lazy(() => import("@/components/pages/Calendar"))
 const Grades = lazy(() => import("@/components/pages/Grades"))
+const Students = lazy(() => import("@/components/pages/Students"))
 const NotFound = lazy(() => import("@/components/pages/NotFound"))
 const Login = lazy(() => import("@/components/pages/Login"))
 const Signup = lazy(() => import("@/components/pages/Signup"))
@@ -83,7 +84,11 @@ const mainRoutes = [
   }),
   createRoute({
     path: "grades",
-    element: <Grades />
+element: <Grades />
+  }),
+  createRoute({
+    path: "students",
+    element: <Students />
   }),
   createRoute({
     path: "*",

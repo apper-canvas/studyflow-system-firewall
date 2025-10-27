@@ -10,12 +10,13 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const navigation = [
+const navigation = [
     { name: "Dashboard", path: "/", icon: "Home" },
     { name: "Courses", path: "/courses", icon: "BookOpen" },
     { name: "Assignments", path: "/assignments", icon: "ClipboardList" },
     { name: "Calendar", path: "/calendar", icon: "Calendar" },
-    { name: "Grades", path: "/grades", icon: "TrendingUp" }
+    { name: "Grades", path: "/grades", icon: "TrendingUp" },
+    { name: "Students", path: "/students", icon: "Users" }
   ]
 
   const isActive = (path) => {
