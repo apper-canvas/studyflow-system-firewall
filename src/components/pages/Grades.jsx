@@ -123,7 +123,7 @@ const filteredAssignments = selectedCourse === "all"
   if (loading) return <Loading />
   if (error) return <Error message={error} onRetry={loadData} />
 
-const overallGPA = calculateOverallGPA()
+const overallGPA = calculateOverallGPA();
   const hasGradedAssignments = assignments.some(a => a.grade_c !== null)
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -203,8 +203,9 @@ const overallGPA = calculateOverallGPA()
                       </div>
                     </Card.Content>
                   </Card>
-                )
+)
               })}
+            </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Course Breakdown */}
