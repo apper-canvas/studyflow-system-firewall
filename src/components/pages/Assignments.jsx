@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { format, isToday, isTomorrow, isPast, parseISO } from "date-fns"
-import ApperIcon from "@/components/ApperIcon"
-import Card from "@/components/atoms/Card"
-import Button from "@/components/atoms/Button"
-import Badge from "@/components/atoms/Badge"
-import Loading from "@/components/ui/Loading"
-import Error from "@/components/ui/Error"
-import Empty from "@/components/ui/Empty"
-import Modal from "@/components/molecules/Modal"
-import FilterBar from "@/components/molecules/FilterBar"
-import Input from "@/components/atoms/Input"
-import Select from "@/components/atoms/Select"
-import Textarea from "@/components/atoms/Textarea"
-import { assignmentService } from "@/services/api/assignmentService"
-import { courseService } from "@/services/api/courseService"
-import { toast } from "react-toastify"
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { format, isPast, isToday, isTomorrow, parseISO } from "date-fns";
+import { assignmentService } from "@/services/api/assignmentService";
+import { courseService } from "@/services/api/courseService";
+import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Select from "@/components/atoms/Select";
+import Button from "@/components/atoms/Button";
+import Input from "@/components/atoms/Input";
+import Card from "@/components/atoms/Card";
+import Textarea from "@/components/atoms/Textarea";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import Modal from "@/components/molecules/Modal";
+import FilterBar from "@/components/molecules/FilterBar";
 
 const Assignments = () => {
   const [assignments, setAssignments] = useState([])
@@ -26,13 +26,13 @@ const Assignments = () => {
   const [editingAssignment, setEditingAssignment] = useState(null)
   const [filters, setFilters] = useState({})
   const [sortBy, setSortBy] = useState("dueDate")
-  const [formData, setFormData] = useState({
-    courseId: "",
-    title: "",
-    description: "",
-    dueDate: "",
-    priority: "medium",
-    weight: 10
+const [formData, setFormData] = useState({
+    course_id_c: "",
+    title_c: "",
+    description_c: "",
+    due_date_c: "",
+    priority_c: "medium",
+    weight_c: 10
   })
 
   const loadData = async () => {
@@ -58,26 +58,27 @@ const Assignments = () => {
     loadData()
   }, [])
 
-  const handleOpenModal = (assignment = null) => {
+const handleOpenModal = (assignment = null) => {
     if (assignment) {
       setEditingAssignment(assignment)
+      const courseId = typeof assignment.course_id_c === 'object' ? assignment.course_id_c.Id : assignment.course_id_c
       setFormData({
-        courseId: assignment.courseId.toString(),
-        title: assignment.title,
-        description: assignment.description || "",
-        dueDate: format(parseISO(assignment.dueDate), "yyyy-MM-dd'T'HH:mm"),
-        priority: assignment.priority,
-        weight: assignment.weight
+        course_id_c: courseId.toString(),
+        title_c: assignment.title_c,
+        description_c: assignment.description_c || "",
+        due_date_c: format(parseISO(assignment.due_date_c), "yyyy-MM-dd'T'HH:mm"),
+        priority_c: assignment.priority_c,
+        weight_c: assignment.weight_c
       })
     } else {
       setEditingAssignment(null)
       setFormData({
-        courseId: courses.length > 0 ? courses[0].Id.toString() : "",
-        title: "",
-        description: "",
-        dueDate: "",
-        priority: "medium",
-        weight: 10
+        course_id_c: courses.length > 0 ? courses[0].Id.toString() : "",
+        title_c: "",
+        description_c: "",
+        due_date_c: "",
+        priority_c: "medium",
+        weight_c: 10
       })
     }
     setIsModalOpen(true)
@@ -92,20 +93,24 @@ const Assignments = () => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.title.trim() || !formData.dueDate || !formData.courseId) {
+    if (!formData.title_c.trim() || !formData.due_date_c || !formData.course_id_c) {
       toast.error("Please fill in all required fields")
       return
     }
 
     try {
       const assignmentData = {
-        ...formData,
-        courseId: parseInt(formData.courseId),
-        dueDate: new Date(formData.dueDate).toISOString(),
-        weight: parseInt(formData.weight)
+        course_id_c: parseInt(formData.course_id_c),
+        title_c: formData.title_c,
+        description_c: formData.description_c,
+        due_date_c: new Date(formData.due_date_c).toISOString(),
+        priority_c: formData.priority_c,
+        weight_c: parseInt(formData.weight_c),
+        completed_c: false,
+        grade_c: null
       }
 
       let updatedAssignment
@@ -150,8 +155,9 @@ const Assignments = () => {
     }
   }
 
-  const getCourseById = (courseId) => {
-    return courses.find(c => c.Id === courseId)
+const getCourseById = (courseId) => {
+    const id = typeof courseId === 'object' ? courseId.Id : courseId
+    return courses.find(c => c.Id === id)
   }
 
   const getDueDateColor = (dueDate, completed) => {
@@ -182,22 +188,22 @@ const Assignments = () => {
   }
 
   // Filter and sort assignments
-  const filteredAssignments = assignments.filter(assignment => {
-    const course = getCourseById(assignment.courseId)
+const filteredAssignments = assignments.filter(assignment => {
+    const courseId = typeof assignment.course_id_c === 'object' ? assignment.course_id_c.Id : assignment.course_id_c
     
-    if (filters.courseId && assignment.courseId.toString() !== filters.courseId) return false
-    if (filters.priority && assignment.priority !== filters.priority) return false
+    if (filters.courseId && courseId.toString() !== filters.courseId) return false
+    if (filters.priority && assignment.priority_c !== filters.priority) return false
     
     if (filters.status) {
       switch (filters.status) {
         case "completed":
-          if (!assignment.completed) return false
+          if (!assignment.completed_c) return false
           break
         case "pending":
-          if (assignment.completed) return false
+          if (assignment.completed_c) return false
           break
         case "overdue":
-          if (assignment.completed || !isPast(parseISO(assignment.dueDate)) || isToday(parseISO(assignment.dueDate))) return false
+          if (assignment.completed_c || !isPast(parseISO(assignment.due_date_c)) || isToday(parseISO(assignment.due_date_c))) return false
           break
       }
     }
@@ -205,19 +211,19 @@ const Assignments = () => {
     return true
   })
 
-  const sortedAssignments = filteredAssignments.sort((a, b) => {
+const sortedAssignments = filteredAssignments.sort((a, b) => {
     switch (sortBy) {
       case "dueDate":
-        return new Date(a.dueDate) - new Date(b.dueDate)
+        return new Date(a.due_date_c) - new Date(b.due_date_c)
       case "priority":
         const priorityOrder = { high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
+        return priorityOrder[b.priority_c] - priorityOrder[a.priority_c]
       case "course":
-        const courseA = getCourseById(a.courseId)?.name || ""
-        const courseB = getCourseById(b.courseId)?.name || ""
+        const courseA = getCourseById(a.course_id_c)?.name_c || ""
+        const courseB = getCourseById(b.course_id_c)?.name_c || ""
         return courseA.localeCompare(courseB)
       case "title":
-        return a.title.localeCompare(b.title)
+        return a.title_c.localeCompare(b.title_c)
       default:
         return 0
     }
@@ -295,8 +301,8 @@ const Assignments = () => {
             transition={{ delay: 0.2 }}
             className="space-y-4"
           >
-            {sortedAssignments.map((assignment, index) => {
-              const course = getCourseById(assignment.courseId)
+{sortedAssignments.map((assignment, index) => {
+              const course = getCourseById(assignment.course_id_c)
               
               return (
                 <motion.div
@@ -306,81 +312,80 @@ const Assignments = () => {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card className={`premium-card hover:shadow-lg transition-all duration-200 ${
-                    assignment.completed 
+                    assignment.completed_c 
                       ? "bg-success-50 border-success-200" 
-                      : isPast(parseISO(assignment.dueDate)) && !isToday(parseISO(assignment.dueDate))
+                      : isPast(parseISO(assignment.due_date_c)) && !isToday(parseISO(assignment.due_date_c))
                         ? "bg-danger-50 border-danger-200"
                         : ""
                   }`}>
                     <Card.Content>
                       <div className="flex items-start space-x-4">
                         {/* Checkbox */}
-                        <button
+<button
                           onClick={() => handleToggleComplete(assignment.Id)}
                           className={`mt-1 w-5 h-5 border-2 rounded transition-all duration-200 flex items-center justify-center ${
-                            assignment.completed
+                            assignment.completed_c
                               ? "bg-success-500 border-success-500"
                               : "border-slate-300 hover:border-primary-500"
                           }`}
                         >
-                          {assignment.completed && (
+                          {assignment.completed_c && (
                             <ApperIcon name="Check" size={14} className="text-white" />
                           )}
                         </button>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-2">
+<div className="flex items-center space-x-2 mb-2">
                             {course && (
                               <Badge 
                                 variant="outline"
                                 className="text-xs"
                                 style={{ 
-                                  borderColor: course.color,
-                                  color: course.color,
-                                  backgroundColor: `${course.color}15`
+                                  borderColor: course?.color_c,
+                                  color: course?.color_c,
+                                  backgroundColor: `${course?.color_c}15`
                                 }}
                               >
-                                {course.name}
+                                {course?.name_c}
                               </Badge>
                             )}
                             <Badge 
-                              variant={getPriorityColor(assignment.priority)}
+                              variant={getPriorityColor(assignment.priority_c)}
                               size="sm"
                             >
-                              {assignment.priority}
+                              {assignment.priority_c}
                             </Badge>
-                            {assignment.weight && (
+                            {assignment.weight_c && (
                               <Badge variant="outline" size="sm">
-                                {assignment.weight}%
+                                {assignment.weight_c}%
                               </Badge>
-                            )}
+)}
                           </div>
 
                           <h3 className={`font-semibold text-slate-800 mb-1 ${
-                            assignment.completed ? "line-through opacity-60" : ""
+                            assignment.completed_c ? "line-through opacity-60" : ""
                           }`}>
-                            {assignment.title}
+                            {assignment.title_c}
                           </h3>
-
-                          {assignment.description && (
+                          {assignment.description_c && (
                             <p className="text-sm text-slate-600 mb-2 line-clamp-2">
-                              {assignment.description}
+                              {assignment.description_c}
                             </p>
                           )}
 
-                          <div className="flex items-center space-x-4 text-sm">
-                            <span className={`font-medium ${getDueDateColor(assignment.dueDate, assignment.completed)}`}>
-                              {getDueDateText(assignment.dueDate, assignment.completed)}
+<div className="flex items-center space-x-4 text-sm">
+                            <span className={`font-medium ${getDueDateColor(assignment.due_date_c, assignment.completed_c)}`}>
+                              {getDueDateText(assignment.due_date_c, assignment.completed_c)}
                             </span>
                             
-                            {assignment.grade !== null && (
+                            {assignment.grade_c !== null && (
                               <Badge 
-                                variant={assignment.grade >= 90 ? "success" : 
-                                       assignment.grade >= 80 ? "warning" : "danger"}
+                                variant={assignment.grade_c >= 90 ? "success" : 
+                                       assignment.grade_c >= 80 ? "warning" : "danger"}
                                 size="sm"
                               >
-                                {assignment.grade}%
+                                {assignment.grade_c}%
                               </Badge>
                             )}
                           </div>
@@ -419,24 +424,24 @@ const Assignments = () => {
         >
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
+<Select
                 label="Course"
-                value={formData.courseId}
-                onChange={(e) => handleInputChange("courseId", e.target.value)}
+                value={formData.course_id_c}
+                onChange={(e) => handleInputChange("course_id_c", e.target.value)}
                 required
               >
                 <option value="">Select a course</option>
                 {courses.map((course) => (
                   <option key={course.Id} value={course.Id}>
-                    {course.name}
+                    {course.name_c}
                   </option>
                 ))}
               </Select>
               
               <Select
                 label="Priority"
-                value={formData.priority}
-                onChange={(e) => handleInputChange("priority", e.target.value)}
+                value={formData.priority_c}
+                onChange={(e) => handleInputChange("priority_c", e.target.value)}
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -444,36 +449,36 @@ const Assignments = () => {
               </Select>
             </div>
             
-            <Input
+<Input
               label="Assignment Title"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
+              value={formData.title_c}
+              onChange={(e) => handleInputChange("title_c", e.target.value)}
               placeholder="e.g., Programming Assignment 3"
               required
             />
             
-            <Textarea
+<Textarea
               label="Description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
+              value={formData.description_c}
+              onChange={(e) => handleInputChange("description_c", e.target.value)}
               placeholder="Brief description of the assignment..."
               rows={3}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
+<Input
                 type="datetime-local"
                 label="Due Date"
-                value={formData.dueDate}
-                onChange={(e) => handleInputChange("dueDate", e.target.value)}
+                value={formData.due_date_c}
+                onChange={(e) => handleInputChange("due_date_c", e.target.value)}
                 required
               />
               
-              <Input
+<Input
                 type="number"
                 label="Weight (%)"
-                value={formData.weight}
-                onChange={(e) => handleInputChange("weight", e.target.value)}
+                value={formData.weight_c}
+                onChange={(e) => handleInputChange("weight_c", e.target.value)}
                 min="1"
                 max="100"
                 placeholder="10"

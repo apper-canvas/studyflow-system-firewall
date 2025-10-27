@@ -21,13 +21,13 @@ const Courses = () => {
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState(null)
-  const [formData, setFormData] = useState({
-    name: "",
-    instructor: "",
-    schedule: "",
-    color: "#2563eb",
-    semester: "Fall 2024",
-    credits: 3
+const [formData, setFormData] = useState({
+    name_c: "",
+    instructor_c: "",
+    schedule_c: "",
+    color_c: "#2563eb",
+    semester_c: "Fall 2024",
+    credits_c: 3
   })
 
   const colorOptions = [
@@ -64,26 +64,26 @@ const Courses = () => {
     loadData()
   }, [])
 
-  const handleOpenModal = (course = null) => {
+const handleOpenModal = (course = null) => {
     if (course) {
       setEditingCourse(course)
       setFormData({
-        name: course.name,
-        instructor: course.instructor,
-        schedule: course.schedule,
-        color: course.color,
-        semester: course.semester,
-        credits: course.credits
+        name_c: course.name_c,
+        instructor_c: course.instructor_c,
+        schedule_c: course.schedule_c,
+        color_c: course.color_c,
+        semester_c: course.semester_c,
+        credits_c: course.credits_c
       })
     } else {
       setEditingCourse(null)
       setFormData({
-        name: "",
-        instructor: "",
-        schedule: "",
-        color: "#2563eb",
-        semester: "Fall 2024",
-        credits: 3
+        name_c: "",
+        instructor_c: "",
+        schedule_c: "",
+        color_c: "#2563eb",
+        semester_c: "Fall 2024",
+        credits_c: 3
       })
     }
     setIsModalOpen(true)
@@ -98,10 +98,10 @@ const Courses = () => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.name.trim() || !formData.instructor.trim() || !formData.schedule.trim()) {
+    if (!formData.name_c.trim() || !formData.instructor_c.trim() || !formData.schedule_c.trim()) {
       toast.error("Please fill in all required fields")
       return
     }
@@ -137,18 +137,21 @@ const Courses = () => {
     }
   }
 
-  const getCourseStats = (courseId) => {
-    const courseAssignments = assignments.filter(a => a.courseId === courseId)
-    const completed = courseAssignments.filter(a => a.completed).length
+const getCourseStats = (courseId) => {
+    const courseAssignments = assignments.filter(a => {
+      const assignmentCourseId = typeof a.course_id_c === 'object' ? a.course_id_c.Id : a.course_id_c
+      return assignmentCourseId === courseId
+    })
+    const completed = courseAssignments.filter(a => a.completed_c).length
     const total = courseAssignments.length
     const overdue = courseAssignments.filter(a => 
-      !a.completed && new Date(a.dueDate) < new Date()
+      !a.completed_c && new Date(a.due_date_c) < new Date()
     ).length
     
     // Calculate average grade
-    const gradedAssignments = courseAssignments.filter(a => a.grade !== null)
+    const gradedAssignments = courseAssignments.filter(a => a.grade_c !== null)
     const averageGrade = gradedAssignments.length > 0
-      ? Math.round(gradedAssignments.reduce((sum, a) => sum + a.grade, 0) / gradedAssignments.length)
+      ? Math.round(gradedAssignments.reduce((sum, a) => sum + a.grade_c, 0) / gradedAssignments.length)
       : null
 
     return { completed, total, overdue, averageGrade }
@@ -211,21 +214,21 @@ const Courses = () => {
                   <Card className="premium-card hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <Card.Content>
                       {/* Course Header */}
-                      <div className="flex items-start justify-between mb-4">
+<div className="flex items-start justify-between mb-4">
                         <div 
                           className="w-4 h-16 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: course.color }}
+                          style={{ backgroundColor: course.color_c }}
                         />
                         
                         <div className="flex-1 ml-4 min-w-0">
                           <h3 className="font-bold text-slate-800 text-lg leading-tight mb-1 truncate">
-                            {course.name}
+                            {course.name_c}
                           </h3>
                           <p className="text-sm text-slate-600 mb-1">
-                            {course.instructor}
+                            {course.instructor_c}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {course.schedule}
+                            {course.schedule_c}
                           </p>
                         </div>
 
@@ -291,9 +294,9 @@ const Courses = () => {
                       </div>
 
                       {/* Course Details */}
-                      <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
-                        <span>{course.semester}</span>
-                        <span>{course.credits} credits</span>
+<div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+                        <span>{course.semester_c}</span>
+                        <span>{course.credits_c} credits</span>
                       </div>
                     </Card.Content>
                   </Card>
@@ -311,46 +314,46 @@ const Courses = () => {
           size="md"
         >
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            <Input
+<Input
               label="Course Name"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
+              value={formData.name_c}
+              onChange={(e) => handleInputChange("name_c", e.target.value)}
               placeholder="e.g., Computer Science Fundamentals"
               required
             />
             
-            <Input
+<Input
               label="Instructor"
-              value={formData.instructor}
-              onChange={(e) => handleInputChange("instructor", e.target.value)}
+              value={formData.instructor_c}
+              onChange={(e) => handleInputChange("instructor_c", e.target.value)}
               placeholder="e.g., Dr. Sarah Johnson"
               required
             />
             
-            <Input
+<Input
               label="Schedule"
-              value={formData.schedule}
-              onChange={(e) => handleInputChange("schedule", e.target.value)}
+              value={formData.schedule_c}
+              onChange={(e) => handleInputChange("schedule_c", e.target.value)}
               placeholder="e.g., MWF 10:00-11:00 AM"
               required
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
+<Select
                 label="Semester"
-                value={formData.semester}
-                onChange={(e) => handleInputChange("semester", e.target.value)}
+                value={formData.semester_c}
+                onChange={(e) => handleInputChange("semester_c", e.target.value)}
               >
                 <option value="Fall 2024">Fall 2024</option>
                 <option value="Spring 2025">Spring 2025</option>
                 <option value="Summer 2025">Summer 2025</option>
               </Select>
               
-              <Input
+<Input
                 type="number"
                 label="Credits"
-                value={formData.credits}
-                onChange={(e) => handleInputChange("credits", parseInt(e.target.value))}
+                value={formData.credits_c}
+                onChange={(e) => handleInputChange("credits_c", parseInt(e.target.value))}
                 min="1"
                 max="6"
                 required
@@ -362,19 +365,19 @@ const Courses = () => {
                 Course Color
               </label>
               <div className="grid grid-cols-4 gap-3">
-                {colorOptions.map((option) => (
+{colorOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => handleInputChange("color", option.value)}
+                    onClick={() => handleInputChange("color_c", option.value)}
                     className={`w-full h-12 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${
-                      formData.color === option.value 
+                      formData.color_c === option.value 
                         ? "border-slate-800 scale-105 shadow-lg" 
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                     style={{ backgroundColor: option.color }}
                   >
-                    {formData.color === option.value && (
+                    {formData.color_c === option.value && (
                       <ApperIcon name="Check" size={16} className="text-white" />
                     )}
                   </button>

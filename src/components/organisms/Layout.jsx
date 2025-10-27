@@ -1,15 +1,15 @@
-import { useState } from "react"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
-import ApperIcon from "@/components/ApperIcon"
-import Button from "@/components/atoms/Button"
-import { cn } from "@/utils/cn"
-
+import React, { useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { useAuth } from "@/layouts/Root";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import { cn } from "@/utils/cn";
 const Layout = () => {
+  const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-
   const navigation = [
     { name: "Dashboard", path: "/", icon: "Home" },
     { name: "Courses", path: "/courses", icon: "BookOpen" },
@@ -126,17 +126,28 @@ const Layout = () => {
               ))}
             </nav>
 
-            <div className="p-4 border-t border-slate-200">
+<div className="p-4 border-t border-slate-200">
               <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-full flex items-center justify-center">
-                    <ApperIcon name="User" size={16} className="text-white" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-800">Student</p>
-                    <p className="text-xs text-slate-500">Academic Year 2024</p>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-full flex items-center justify-center">
+                      <ApperIcon name="User" size={16} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-800">Student</p>
+                      <p className="text-xs text-slate-500">Academic Year 2024</p>
+                    </div>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => logout()}
+                  className="w-full text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+                >
+                  <ApperIcon name="LogOut" size={14} className="mr-2" />
+                  Logout
+                </Button>
               </div>
             </div>
           </div>

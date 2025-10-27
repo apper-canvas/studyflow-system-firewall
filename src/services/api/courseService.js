@@ -1,51 +1,166 @@
-import courseData from "@/services/mockData/courses.json"
-
-let courses = [...courseData]
+import { getApperClient } from "@/services/apperClient"
 
 export const courseService = {
   async getAll() {
-    await new Promise(resolve => setTimeout(resolve, 300))
-    return [...courses]
+    try {
+      const apperClient = getApperClient()
+      const response = await apperClient.fetchRecords('course_c', {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "instructor_c"}},
+          {"field": {"Name": "schedule_c"}},
+          {"field": {"Name": "color_c"}},
+          {"field": {"Name": "semester_c"}},
+          {"field": {"Name": "credits_c"}}
+        ],
+        orderBy: [{"fieldName": "Id", "sorttype": "ASC"}]
+      })
+
+      if (!response.success) {
+        console.error(response.message)
+        return []
+      }
+
+      return response.data || []
+    } catch (error) {
+      console.error("Error fetching courses:", error?.response?.data?.message || error)
+      return []
+    }
   },
 
   async getById(id) {
-    await new Promise(resolve => setTimeout(resolve, 200))
-    const course = courses.find(c => c.Id === parseInt(id))
-    if (!course) {
+    try {
+      const apperClient = getApperClient()
+      const response = await apperClient.getRecordById('course_c', parseInt(id), {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "name_c"}},
+          {"field": {"Name": "instructor_c"}},
+          {"field": {"Name": "schedule_c"}},
+          {"field": {"Name": "color_c"}},
+          {"field": {"Name": "semester_c"}},
+          {"field": {"Name": "credits_c"}}
+        ]
+      })
+
+      if (!response.success) {
+        console.error(response.message)
+        throw new Error("Course not found")
+      }
+
+      return response.data
+    } catch (error) {
+      console.error(`Error fetching course ${id}:`, error?.response?.data?.message || error)
       throw new Error("Course not found")
     }
-    return { ...course }
   },
 
   async create(courseData) {
-    await new Promise(resolve => setTimeout(resolve, 400))
-    const maxId = courses.length > 0 ? Math.max(...courses.map(c => c.Id)) : 0
-    const newCourse = {
-      ...courseData,
-      Id: maxId + 1,
-      createdAt: new Date().toISOString()
+    try {
+      const apperClient = getApperClient()
+      const params = {
+        records: [{
+          Name: courseData.name || courseData.name_c,
+          name_c: courseData.name || courseData.name_c,
+          instructor_c: courseData.instructor || courseData.instructor_c,
+          schedule_c: courseData.schedule || courseData.schedule_c,
+          color_c: courseData.color || courseData.color_c,
+          semester_c: courseData.semester || courseData.semester_c,
+          credits_c: parseInt(courseData.credits || courseData.credits_c)
+        }]
+      }
+
+      const response = await apperClient.createRecord('course_c', params)
+
+      if (!response.success) {
+        console.error(response.message)
+        throw new Error(response.message)
+      }
+
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success)
+        if (failed.length > 0) {
+          console.error(`Failed to create course: ${JSON.stringify(failed)}`)
+          throw new Error(failed[0].message || "Failed to create course")
+        }
+        return response.results[0].data
+      }
+
+      return response.data
+    } catch (error) {
+      console.error("Error creating course:", error?.response?.data?.message || error)
+      throw error
     }
-    courses.push(newCourse)
-    return { ...newCourse }
   },
 
   async update(id, courseData) {
-    await new Promise(resolve => setTimeout(resolve, 350))
-    const index = courses.findIndex(c => c.Id === parseInt(id))
-    if (index === -1) {
-      throw new Error("Course not found")
+    try {
+      const apperClient = getApperClient()
+      const params = {
+        records: [{
+          Id: parseInt(id),
+          Name: courseData.name || courseData.name_c,
+          name_c: courseData.name || courseData.name_c,
+          instructor_c: courseData.instructor || courseData.instructor_c,
+          schedule_c: courseData.schedule || courseData.schedule_c,
+          color_c: courseData.color || courseData.color_c,
+          semester_c: courseData.semester || courseData.semester_c,
+          credits_c: parseInt(courseData.credits || courseData.credits_c)
+        }]
+      }
+
+      const response = await apperClient.updateRecord('course_c', params)
+
+      if (!response.success) {
+        console.error(response.message)
+        throw new Error(response.message)
+      }
+
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success)
+        if (failed.length > 0) {
+          console.error(`Failed to update course: ${JSON.stringify(failed)}`)
+          throw new Error(failed[0].message || "Failed to update course")
+        }
+        return response.results[0].data
+      }
+
+      return response.data
+    } catch (error) {
+      console.error("Error updating course:", error?.response?.data?.message || error)
+      throw error
     }
-    courses[index] = { ...courses[index], ...courseData }
-    return { ...courses[index] }
   },
 
   async delete(id) {
-    await new Promise(resolve => setTimeout(resolve, 250))
-    const index = courses.findIndex(c => c.Id === parseInt(id))
-    if (index === -1) {
-      throw new Error("Course not found")
+    try {
+      const apperClient = getApperClient()
+      const params = {
+        RecordIds: [parseInt(id)]
+      }
+
+      const response = await apperClient.deleteRecord('course_c', params)
+
+      if (!response.success) {
+        console.error(response.message)
+        throw new Error(response.message)
+      }
+
+      if (response.results) {
+        const failed = response.results.filter(r => !r.success)
+        if (failed.length > 0) {
+          console.error(`Failed to delete course: ${JSON.stringify(failed)}`)
+          throw new Error(failed[0].message || "Failed to delete course")
+        }
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error("Error deleting course:", error?.response?.data?.message || error)
+      throw error
     }
-    courses.splice(index, 1)
-    return { success: true }
   }
 }

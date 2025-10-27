@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import ApperIcon from "@/components/ApperIcon"
-import Card from "@/components/atoms/Card"
-import Badge from "@/components/atoms/Badge"
-import Loading from "@/components/ui/Loading"
-import Error from "@/components/ui/Error"
-import Empty from "@/components/ui/Empty"
-import { assignmentService } from "@/services/api/assignmentService"
-import { courseService } from "@/services/api/courseService"
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { assignmentService } from "@/services/api/assignmentService";
+import { courseService } from "@/services/api/courseService";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Card from "@/components/atoms/Card";
+import Courses from "@/components/pages/Courses";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import { cn } from "@/utils/cn";
 
 const Grades = () => {
   const [assignments, setAssignments] = useState([])
@@ -39,27 +41,29 @@ const Grades = () => {
     loadData()
   }, [])
 
-  const getCourseById = (courseId) => {
-    return courses.find(c => c.Id === courseId)
+const getCourseById = (courseId) => {
+    const id = typeof courseId === 'object' ? courseId.Id : courseId
+    return courses.find(c => c.Id === id)
   }
 
-  const calculateCourseGrade = (courseId) => {
-    const courseAssignments = assignments.filter(a => 
-      a.courseId === courseId && a.grade !== null
-    )
+const calculateCourseGrade = (courseId) => {
+    const courseAssignments = assignments.filter(a => {
+      const assignmentCourseId = typeof a.course_id_c === 'object' ? a.course_id_c.Id : a.course_id_c
+      return assignmentCourseId === courseId && a.grade_c !== null
+    })
     
     if (courseAssignments.length === 0) return null
     
-    const totalWeight = courseAssignments.reduce((sum, a) => sum + a.weight, 0)
-    const weightedSum = courseAssignments.reduce((sum, a) => sum + (a.grade * a.weight), 0)
+    const totalWeight = courseAssignments.reduce((sum, a) => sum + a.weight_c, 0)
+    const weightedSum = courseAssignments.reduce((sum, a) => sum + (a.grade_c * a.weight_c), 0)
     
     return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : null
   }
 
-  const calculateOverallGPA = () => {
+const calculateOverallGPA = () => {
     const courseGrades = courses.map(course => {
       const grade = calculateCourseGrade(course.Id)
-      return grade !== null ? { grade, credits: course.credits } : null
+      return grade !== null ? { grade, credits: course.credits_c } : null
     }).filter(Boolean)
     
     if (courseGrades.length === 0) return 0
@@ -110,16 +114,17 @@ const Grades = () => {
     return "danger"
   }
 
-  const filteredAssignments = selectedCourse === "all" 
-    ? assignments.filter(a => a.grade !== null)
-    : assignments.filter(a => a.courseId.toString() === selectedCourse && a.grade !== null)
-
+const filteredAssignments = selectedCourse === "all" 
+    ? assignments.filter(a => a.grade_c !== null)
+    : assignments.filter(a => {
+        const courseId = typeof a.course_id_c === 'object' ? a.course_id_c.Id : a.course_id_c
+        return courseId.toString() === selectedCourse && a.grade_c !== null
+      })
   if (loading) return <Loading />
   if (error) return <Error message={error} onRetry={loadData} />
 
-  const overallGPA = calculateOverallGPA()
-  const hasGradedAssignments = assignments.some(a => a.grade !== null)
-
+const overallGPA = calculateOverallGPA()
+  const hasGradedAssignments = assignments.some(a => a.grade_c !== null)
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -155,6 +160,7 @@ const Grades = () => {
               className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
             >
               {/* Overall GPA */}
+{/* Overall GPA */}
               <Card className="premium-card">
                 <Card.Content>
                   <div className="text-center">
@@ -170,7 +176,7 @@ const Grades = () => {
                 </Card.Content>
               </Card>
 
-              {/* Course Stats */}
+              {/* Top Course Cards */}
               {courses.slice(0, 3).map((course, index) => {
                 const grade = calculateCourseGrade(course.Id)
                 if (grade === null) return null
@@ -180,26 +186,25 @@ const Grades = () => {
                     <Card.Content>
                       <div className="text-center">
                         <div 
-                          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-lg"
-                          style={{ backgroundColor: course.color }}
+                          className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                          style={{ backgroundColor: course.color_c || '#64748b' }}
                         >
-                          {getLetterGrade(grade)}
+                          <ApperIcon name="BookOpen" size={20} className="text-white" />
                         </div>
                         <p className="text-sm font-medium text-slate-600 mb-1 truncate">
-                          {course.name}
+                          {course.name_c}
                         </p>
                         <p className="text-2xl font-bold text-slate-800 count-up">
                           {grade}%
                         </p>
                         <p className="text-xs text-slate-500">
-                          {course.credits} credits
+                          {course.credits_c} credits
                         </p>
                       </div>
                     </Card.Content>
                   </Card>
                 )
               })}
-            </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Course Breakdown */}
@@ -209,12 +214,12 @@ const Grades = () => {
                 transition={{ delay: 0.2 }}
                 className="lg:col-span-2"
               >
-                <Card className="premium-card">
+<Card className="premium-card">
                   <Card.Header>
                     <div className="flex items-center justify-between">
-                      <h2 className="text-xl font-semibold text-slate-800">
-                        Course Performance
-                      </h2>
+                      <h3 className="text-lg font-semibold text-slate-800">
+                        Grade Breakdown
+                      </h3>
                       <select
                         value={selectedCourse}
                         onChange={(e) => setSelectedCourse(e.target.value)}
@@ -222,8 +227,8 @@ const Grades = () => {
                       >
                         <option value="all">All Courses</option>
                         {courses.map((course) => (
-                          <option key={course.Id} value={course.Id}>
-                            {course.name}
+                          <option key={course.Id} value={course.Id.toString()}>
+                            {course.name_c}
                           </option>
                         ))}
                       </select>
@@ -238,9 +243,9 @@ const Grades = () => {
                             No graded assignments for the selected course
                           </p>
                         </div>
-                      ) : (
+) : (
                         filteredAssignments.map((assignment, index) => {
-                          const course = getCourseById(assignment.courseId)
+                          const course = getCourseById(assignment.course_id_c)
                           return (
                             <motion.div
                               key={assignment.Id}
@@ -251,42 +256,42 @@ const Grades = () => {
                             >
                               <div
                                 className="w-3 h-3 rounded-full flex-shrink-0"
-                                style={{ backgroundColor: course?.color || "#64748b" }}
+                                style={{ backgroundColor: course?.color_c || "#64748b" }}
                               />
                               
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-medium text-slate-800 truncate">
-                                  {assignment.title}
-                                </h4>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  {course && (
-                                    <Badge variant="outline" size="sm">
-                                      {course.name}
-                                    </Badge>
-                                  )}
+                              <h4 className="font-medium text-slate-800 truncate">
+                                {assignment.title_c}
+                              </h4>
+                              <div className="flex items-center space-x-2 mt-1">
+                                {course && (
                                   <Badge variant="outline" size="sm">
-                                    {assignment.weight}% weight
+                                    {course.name_c}
                                   </Badge>
-                                </div>
+                                )}
+                                <Badge variant="outline" size="sm">
+                                  {assignment.weight_c}% weight
+                                </Badge>
                               </div>
+</div>
 
                               <div className="flex items-center space-x-3 flex-shrink-0">
-                                <Badge
-                                  variant={getGradeColor(assignment.grade)}
-                                  size="lg"
-                                  className="font-bold"
-                                >
-                                  {assignment.grade}%
-                                </Badge>
-                                <div className="text-center">
-                                  <div className="text-lg font-bold text-slate-800">
-                                    {getLetterGrade(assignment.grade)}
-                                  </div>
-                                  <div className="text-xs text-slate-500">
-                                    {convertToGradePoint(assignment.grade)} pts
-                                  </div>
+                              <Badge
+                                variant={getGradeColor(assignment.grade_c)}
+                                size="lg"
+                                className="font-bold"
+                              >
+                                {assignment.grade_c}%
+                              </Badge>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-slate-800">
+                                  {getLetterGrade(assignment.grade_c)}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                  {convertToGradePoint(assignment.grade_c)} pts
                                 </div>
                               </div>
+                            </div>
                             </motion.div>
                           )
                         })
@@ -316,7 +321,7 @@ const Grades = () => {
                         const grade = calculateCourseGrade(course.Id)
                         if (grade === null) return null
                         
-                        const gpa = convertToGradePoint(grade)
+const gpa = convertToGradePoint(grade)
                         
                         return (
                           <div key={course.Id} className="space-y-2">
@@ -324,10 +329,10 @@ const Grades = () => {
                               <div className="flex items-center space-x-2">
                                 <div
                                   className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: course.color }}
+                                  style={{ backgroundColor: course.color_c }}
                                 />
                                 <span className="text-sm font-medium text-slate-700 truncate">
-                                  {course.name}
+                                  {course.name_c}
                                 </span>
                               </div>
                               <div className="text-sm font-bold text-slate-800">
@@ -341,12 +346,12 @@ const Grades = () => {
                                 animate={{ width: `${(gpa / 4) * 100}%` }}
                                 transition={{ duration: 1 }}
                                 className="h-2 rounded-full"
-                                style={{ backgroundColor: course.color }}
+                                style={{ backgroundColor: course.color_c }}
                               />
                             </div>
                           </div>
                         )
-                      }).filter(Boolean)}
+                      })}
                     </div>
                   </Card.Content>
                 </Card>
@@ -358,12 +363,12 @@ const Grades = () => {
                       Grade Statistics
                     </h3>
                   </Card.Header>
-                  <Card.Content>
+<Card.Content>
                     {(() => {
-                      const gradedAssignments = assignments.filter(a => a.grade !== null)
+                      const gradedAssignments = assignments.filter(a => a.grade_c !== null)
                       if (gradedAssignments.length === 0) return null
                       
-                      const grades = gradedAssignments.map(a => a.grade)
+                      const grades = gradedAssignments.map(a => a.grade_c)
                       const average = Math.round(grades.reduce((sum, g) => sum + g, 0) / grades.length)
                       const highest = Math.max(...grades)
                       const lowest = Math.min(...grades)

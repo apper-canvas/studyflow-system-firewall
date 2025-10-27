@@ -1,30 +1,17 @@
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isToday, 
-  addMonths, 
-  subMonths,
-  parseISO,
-  isSameDay,
-  startOfWeek,
-  endOfWeek
-} from "date-fns"
-import ApperIcon from "@/components/ApperIcon"
-import Card from "@/components/atoms/Card"
-import Button from "@/components/atoms/Button"
-import Badge from "@/components/atoms/Badge"
-import Loading from "@/components/ui/Loading"
-import Error from "@/components/ui/Error"
-import Empty from "@/components/ui/Empty"
-import { assignmentService } from "@/services/api/assignmentService"
-import { courseService } from "@/services/api/courseService"
-import { cn } from "@/utils/cn"
-
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, isToday, parseISO, startOfMonth, startOfWeek, subMonths } from "date-fns";
+import { assignmentService } from "@/services/api/assignmentService";
+import { courseService } from "@/services/api/courseService";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import Assignments from "@/components/pages/Assignments";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import { cn } from "@/utils/cn";
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [assignments, setAssignments] = useState([])
@@ -57,13 +44,14 @@ const Calendar = () => {
     loadData()
   }, [])
 
-  const getCourseById = (courseId) => {
-    return courses.find(c => c.Id === courseId)
+const getCourseById = (courseId) => {
+    const id = typeof courseId === 'object' ? courseId.Id : courseId
+    return courses.find(c => c.Id === id)
   }
 
   const getAssignmentsForDate = (date) => {
     return assignments.filter(assignment => 
-      isSameDay(parseISO(assignment.dueDate), date)
+      isSameDay(parseISO(assignment.due_date_c), date)
     )
   }
 
@@ -217,17 +205,16 @@ const Calendar = () => {
                         )}>
                           {format(day, "d")}
                         </span>
-                        
-                        {/* Assignment indicators */}
+{/* Assignment indicators */}
                         <div className="flex-1 mt-1 space-y-1 overflow-hidden">
                           {dayAssignments.slice(0, 2).map((assignment) => {
-                            const course = getCourseById(assignment.courseId)
+                            const course = getCourseById(assignment.course_id_c)
                             return (
                               <div
                                 key={assignment.Id}
                                 className="w-full h-1.5 rounded-full opacity-75"
-                                style={{ backgroundColor: course?.color || "#64748b" }}
-                                title={`${assignment.title} - ${course?.name}`}
+                                style={{ backgroundColor: course?.color_c || "#64748b" }}
+                                title={`${assignment.title_c} - ${course?.name_c}`}
                               />
                             )
                           })}
@@ -291,11 +278,10 @@ const Calendar = () => {
                       </div>
                     )
                   }
-                  
-                  return (
+return (
                     <div className="space-y-3">
                       {dayAssignments.map((assignment, index) => {
-                        const course = getCourseById(assignment.courseId)
+                        const course = getCourseById(assignment.course_id_c)
                         return (
                           <motion.div
                             key={assignment.Id}
@@ -304,45 +290,45 @@ const Calendar = () => {
                             transition={{ delay: index * 0.1 }}
                             className={cn(
                               "p-3 rounded-lg border",
-                              assignment.completed 
+                              assignment.completed_c 
                                 ? "bg-success-50 border-success-200" 
                                 : "bg-white border-slate-200"
                             )}
-                          >
+>
                             <div className="flex items-start space-x-3">
                               <div
                                 className="w-3 h-3 rounded-full flex-shrink-0 mt-1"
-                                style={{ backgroundColor: course?.color || "#64748b" }}
+                                style={{ backgroundColor: course?.color_c || "#64748b" }}
                               />
                               
                               <div className="flex-1 min-w-0">
                                 <p className={cn(
                                   "font-medium text-sm",
-                                  assignment.completed 
+                                  assignment.completed_c 
                                     ? "line-through text-slate-500" 
                                     : "text-slate-800"
                                 )}>
-                                  {assignment.title}
+                                  {assignment.title_c}
                                 </p>
                                 
                                 {course && (
                                   <p className="text-xs text-slate-500 mt-1">
-                                    {course.name}
+                                    {course.name_c}
                                   </p>
-                                )}
+)}
                                 
                                 <div className="flex items-center mt-2 space-x-2">
                                   <Badge 
                                     variant={
-                                      assignment.priority === "high" ? "danger" : 
-                                      assignment.priority === "medium" ? "warning" : "success"
+                                      assignment.priority_c === "high" ? "danger" : 
+                                      assignment.priority_c === "medium" ? "warning" : "success"
                                     }
                                     size="sm"
                                   >
-                                    {assignment.priority}
+                                    {assignment.priority_c}
                                   </Badge>
                                   
-                                  {assignment.completed && (
+                                  {assignment.completed_c && (
                                     <Badge variant="success" size="sm">
                                       <ApperIcon name="Check" size={12} className="mr-1" />
                                       Done
@@ -368,12 +354,12 @@ const Calendar = () => {
                 </h4>
               </Card.Header>
               <Card.Content>
-                <div className="space-y-4">
+<div className="space-y-4">
                   {(() => {
                     const monthAssignments = assignments.filter(a => 
-                      isSameMonth(parseISO(a.dueDate), currentDate)
+                      isSameMonth(parseISO(a.due_date_c), currentDate)
                     )
-                    const completed = monthAssignments.filter(a => a.completed).length
+                    const completed = monthAssignments.filter(a => a.completed_c).length
                     const total = monthAssignments.length
                     const pending = total - completed
                     

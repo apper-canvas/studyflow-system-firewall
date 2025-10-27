@@ -18,7 +18,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const loadData = async () => {
+const loadData = async () => {
     try {
       setLoading(true)
       setError(null)
@@ -42,12 +42,12 @@ const Dashboard = () => {
   }, [])
 
   const handleToggleComplete = async (assignmentId) => {
-    try {
+try {
       const updatedAssignment = await assignmentService.toggleComplete(assignmentId)
       setAssignments(prev => 
         prev.map(a => a.Id === assignmentId ? updatedAssignment : a)
       )
-      toast.success(updatedAssignment.completed ? "Assignment marked as complete!" : "Assignment marked as pending")
+      toast.success(updatedAssignment.completed_c ? "Assignment marked as complete!" : "Assignment marked as pending")
     } catch (err) {
       toast.error("Failed to update assignment")
     }
@@ -57,35 +57,35 @@ const Dashboard = () => {
   if (error) return <Error message={error} onRetry={loadData} />
 
   // Calculate dashboard statistics
-  const upcomingAssignments = assignments
-    .filter(a => !a.completed && new Date(a.dueDate) > new Date())
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+const upcomingAssignments = assignments
+    .filter(a => !a.completed_c && new Date(a.due_date_c) > new Date())
+    .sort((a, b) => new Date(a.due_date_c) - new Date(b.due_date_c))
     .slice(0, 5)
 
-  const todayAssignments = assignments.filter(a => 
-    !a.completed && isToday(new Date(a.dueDate))
+const todayAssignments = assignments.filter(a => 
+    !a.completed_c && isToday(new Date(a.due_date_c))
   )
 
-  const overdueAssignments = assignments.filter(a => 
-    !a.completed && isPast(new Date(a.dueDate)) && !isToday(new Date(a.dueDate))
+const overdueAssignments = assignments.filter(a => 
+    !a.completed_c && isPast(new Date(a.due_date_c)) && !isToday(new Date(a.due_date_c))
   )
 
-  const completedThisWeek = assignments.filter(a => 
-    a.completed && isThisWeek(new Date(a.createdAt))
+const completedThisWeek = assignments.filter(a => 
+    a.completed_c && isThisWeek(new Date(a.CreatedOn))
   ).length
 
   const totalAssignments = assignments.length
-  const completedAssignments = assignments.filter(a => a.completed).length
+const completedAssignments = assignments.filter(a => a.completed_c).length
   const completionRate = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0
 
   // Calculate overall GPA (simplified)
-  const gradesAssignments = assignments.filter(a => a.grade !== null)
+const gradesAssignments = assignments.filter(a => a.grade_c !== null)
   const averageGrade = gradesAssignments.length > 0 
-    ? gradesAssignments.reduce((sum, a) => sum + a.grade, 0) / gradesAssignments.length
+    ? gradesAssignments.reduce((sum, a) => sum + a.grade_c, 0) / gradesAssignments.length
     : 0
   const gpa = (averageGrade / 100 * 4).toFixed(2)
 
-  const getDueDateColor = (dueDate) => {
+const getDueDateColor = (dueDate) => {
     const date = new Date(dueDate)
     if (isPast(date) && !isToday(date)) return "text-danger-600"
     if (isToday(date)) return "text-warning-600"
@@ -93,7 +93,7 @@ const Dashboard = () => {
     return "text-slate-600"
   }
 
-  const getDueDateText = (dueDate) => {
+const getDueDateText = (dueDate) => {
     const date = new Date(dueDate)
     if (isPast(date) && !isToday(date)) return "Overdue"
     if (isToday(date)) return "Due Today"
@@ -101,7 +101,7 @@ const Dashboard = () => {
     return format(date, "MMM d, h:mm a")
   }
 
-  const getPriorityColor = (priority) => {
+const getPriorityColor = (priority) => {
     switch (priority) {
       case "high": return "text-danger-600"
       case "medium": return "text-warning-600"
@@ -110,8 +110,9 @@ const Dashboard = () => {
     }
   }
 
-  const getCourseById = (courseId) => {
-    return courses.find(c => c.Id === courseId)
+const getCourseById = (courseId) => {
+    const id = typeof courseId === 'object' ? courseId.Id : courseId
+    return courses.find(c => c.Id === id)
   }
 
   return (
@@ -245,8 +246,8 @@ const Dashboard = () => {
                   />
                 ) : (
                   <div className="space-y-4">
-                    {upcomingAssignments.map((assignment, index) => {
-                      const course = getCourseById(assignment.courseId)
+{upcomingAssignments.map((assignment, index) => {
+                      const course = getCourseById(assignment.course_id_c)
                       return (
                         <motion.div
                           key={assignment.Id}
@@ -256,10 +257,10 @@ const Dashboard = () => {
                           className="flex items-center space-x-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
                         >
                           <button
-                            onClick={() => handleToggleComplete(assignment.Id)}
+onClick={() => handleToggleComplete(assignment.Id)}
                             className="w-5 h-5 border-2 border-slate-300 rounded hover:border-primary-500 transition-colors flex items-center justify-center"
                           >
-                            {assignment.completed && (
+{assignment.completed_c && (
                               <ApperIcon name="Check" size={14} className="text-primary-600" />
                             )}
                           </button>
@@ -270,29 +271,29 @@ const Dashboard = () => {
                                 <Badge 
                                   variant="outline"
                                   className="text-xs"
-                                  style={{ 
-                                    borderColor: course.color,
-                                    color: course.color,
-                                    backgroundColor: `${course.color}15`
+style={{ 
+                                    borderColor: course?.color_c,
+                                    color: course?.color_c,
+                                    backgroundColor: `${course?.color_c}15`
                                   }}
                                 >
                                   {course.name}
                                 </Badge>
                               )}
                               <Badge 
-                                variant={assignment.priority === "high" ? "danger" : 
-                                       assignment.priority === "medium" ? "warning" : "success"}
+variant={assignment.priority_c === "high" ? "danger" : 
+                                       assignment.priority_c === "medium" ? "warning" : "success"}
                                 size="sm"
                               >
-                                {assignment.priority}
+                                {assignment.priority_c}
                               </Badge>
                             </div>
                             
                             <p className="font-medium text-slate-800 truncate">
-                              {assignment.title}
+{assignment.title_c}
                             </p>
-                            <p className={`text-sm ${getDueDateColor(assignment.dueDate)} font-medium`}>
-                              {getDueDateText(assignment.dueDate)}
+<p className={`text-sm ${getDueDateColor(assignment.due_date_c)} font-medium`}>
+                              {getDueDateText(assignment.due_date_c)}
                             </p>
                           </div>
 
@@ -328,7 +329,7 @@ const Dashboard = () => {
               <Card.Content>
                 <div className="space-y-3">
                   {courses.slice(0, 3).map((course, index) => (
-                    <motion.div
+<motion.div
                       key={course.Id}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -336,15 +337,15 @@ const Dashboard = () => {
                       className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg"
                     >
                       <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: course.color }}
+className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: course.color_c }}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-800 text-sm truncate">
-                          {course.name}
+{course.name_c}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {course.schedule}
+{course.schedule_c}
                         </p>
                       </div>
                     </motion.div>
